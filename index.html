@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthNexus // Smart Identity & Role-Based Access Portal</title>
+    
+    <!-- Meta & Branding -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Modern, Smart & Intuitive JWT Authentication, RBAC Portal & API Explorer">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+    <!-- Ambient Background Glows -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+    <div class="bg-glow glow-3"></div>
+
+    <!-- Application Shell -->
+    <div class="app-container">
+        
+        <!-- ================================================================= -->
+        <!-- TOP NAVIGATION BAR (ABOVE PORTION OF THE PAGE)                     -->
+        <!-- ================================================================= -->
+        <header class="top-navbar">
+            <div class="nav-left">
+                <a href="#auth" class="brand-logo" id="brand-link" data-view="auth">
+                    <div class="logo-icon-box">
+                        <i data-lucide="shield-check" class="brand-icon"></i>
+                    </div>
+                    <div class="brand-info">
+                        <span class="brand-title">Auth<span class="gradient-text">Nexus</span></span>
+                        <span class="brand-tag">IDENTITY & RBAC GATEWAY</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Main Navigation Links / API Endpoints -->
+            <nav class="nav-center" id="main-nav">
+                <button class="nav-link active" data-view="auth" id="nav-btn-auth">
+                    <i data-lucide="key-round"></i>
+                    <span>Authentication</span>
+                </button>
+
+                <button class="nav-link" data-view="profile" id="nav-btn-profile">
+                    <i data-lucide="user"></i>
+                    <span>Profile API</span>
+                    <span class="route-badge">/profile</span>
+                </button>
+
+                <button class="nav-link" data-view="user" id="nav-btn-user">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>User Portal</span>
+                    <span class="route-badge">/user</span>
+                </button>
+
+                <button class="nav-link" data-view="admin" id="nav-btn-admin">
+                    <i data-lucide="crown"></i>
+                    <span>Admin Portal</span>
+                    <span class="route-badge">/admin</span>
+                </button>
+
+                <button class="nav-link" data-view="protected" id="nav-btn-protected">
+                    <i data-lucide="shield"></i>
+                    <span>Protected API</span>
+                    <span class="route-badge">/protected</span>
+                </button>
+
+                <button class="nav-link" data-view="inspector" id="nav-btn-inspector">
+                    <i data-lucide="cpu"></i>
+                    <span>Token & API Tester</span>
+                </button>
+            </nav>
+
+            <!-- Right Controls: Backend Status, User Pill & Actions -->
+            <div class="nav-right">
+                <!-- Backend Health Pill -->
+                <div class="health-badge" id="backend-health-badge" title="Click to test backend connection">
+                    <span class="status-dot dot-online"></span>
+                    <span class="health-label" id="backend-status-text">Backend: Online</span>
+                    <span class="latency-tag" id="backend-latency">-- ms</span>
+                </div>
+
+                <!-- Active Session / User Pill -->
+                <div class="user-profile-pill" id="user-profile-pill">
+                    <div class="user-avatar" id="nav-user-avatar">
+                        <span id="nav-avatar-initials">G</span>
+                    </div>
+                    <div class="user-details-mini">
+                        <span class="user-name-text" id="nav-username">Guest</span>
+                        <span class="role-badge role-guest" id="nav-role-badge">NOT LOGGED IN</span>
+                    </div>
+                    <button class="btn-icon-nav" id="btn-nav-logout" title="Revoke Session / Logout" style="display: none;">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+
+                <!-- API Server Settings Modal Toggle -->
+                <button class="btn-icon-nav" id="btn-api-settings" title="Backend Server Settings">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sub-Bar: Quick Status & Token Freshness Banner (When Authenticated) -->
+        <div class="session-quickbar" id="session-quickbar" style="display: none;">
+            <div class="quickbar-left">
+                <i data-lucide="check-circle-2" class="text-emerald"></i>
+                <span>Active Session:</span>
+                <strong id="quickbar-user">admin</strong>
+                <span class="sep">•</span>
+                <span>Role:</span>
+                <span class="badge-role" id="quickbar-role">admin</span>
+                <span class="sep">•</span>
+                <span>Algorithm:</span>
+                <span class="badge-algo">HS256 (HMAC)</span>
+            </div>
+            <div class="quickbar-right">
+                <i data-lucide="clock" class="text-indigo"></i>
+                <span>Token Expiration:</span>
+                <span class="countdown-highlight" id="quickbar-countdown">29:59</span>
+                <button class="btn-text-action" id="quickbar-btn-copy">
+                    <i data-lucide="copy"></i> Copy JWT
+                </button>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MAIN CONTENT AREA / DYNAMIC PAGE VIEWS                            -->
+        <!-- ================================================================= -->
+        <main class="main-content">
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 1: AUTHENTICATION (SIGN IN & SIGN UP)                   -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view active" id="view-auth">
+                <div class="auth-layout">
+                    <!-- Left Hero / Intro Card -->
+                    <div class="auth-hero-card">
+                        <div class="hero-badge">
+                            <i data-lucide="sparkles"></i>
+                            <span>FastAPI + SQLAlchemy + JWT</span>
+                        </div>
+                        <h1 class="hero-title">Smart Identity & Role-Based Access</h1>
+                        <p class="hero-desc">
+                            A secure, streamlined authentication gateway. Test user authentication, token generation, cryptographic signing, and role-based permissions in real-time.
+                        </p>
+
+                        <div class="features-list">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i data-lucide="lock"></i></div>
+                                <div>
+                                    <h4>OAuth2 Password Flow</h4>
+                                    <p>Standardized form authentication issuing tamper-proof signed JWTs.</p>
+                                </div>
+                            </div>
+
+                            <div class="feature-item">
+                                <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                                <div>
+                                    <h4>Zero-Trust RBAC Enforcement</h4>
+                                    <p>Granular route permissions for <code class="inline-code">admin</code>, <code class="inline-code">user</code>, and protected gateways.</p>
+                                </div>
+                            </div>
+
+                            <div class="feature-item">
+                                <div class="feature-icon"><i data-lucide="eye"></i></div>
+                                <div>
+                                    <h4>Rich Visual Detail Pages</h4>
+                                    <p>Inspect live API responses formatted into clean, beautiful dashboards.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Demo Test Presets -->
+                        <div class="demo-presets-box">
+                            <div class="presets-header">
+                                <i data-lucide="zap"></i>
+                                <span>Quick 1-Click Demo Accounts</span>
+                            </div>
+                            <div class="presets-buttons">
+                                <button type="button" class="btn-preset admin-preset" id="btn-quick-admin">
+                                    <i data-lucide="crown"></i>
+                                    <div>
+                                        <div class="preset-name">Admin Account</div>
+                                        <div class="preset-creds">user: admin • role: admin</div>
+                                    </div>
+                                </button>
+                                <button type="button" class="btn-preset user-preset" id="btn-quick-user">
+                                    <i data-lucide="user-check"></i>
+                                    <div>
+                                        <div class="preset-name">Standard User</div>
+                                        <div class="preset-creds">user: user • role: user</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Auth Form Card -->
+                    <div class="auth-form-card">
+                        <!-- Card Navigation Tabs -->
+                        <div class="card-tab-nav">
+                            <button class="card-tab active" id="tab-login" data-target="form-login-pane">
+                                <i data-lucide="log-in"></i> Sign In
+                            </button>
+                            <button class="card-tab" id="tab-signup" data-target="form-signup-pane">
+                                <i data-lucide="user-plus"></i> Register New User
+                            </button>
+                        </div>
+
+                        <div class="card-tab-content">
+                            <!-- SIGN IN TAB PANE -->
+                            <div class="tab-pane active" id="form-login-pane">
+                                <div class="form-header">
+                                    <h3>Welcome Back</h3>
+                                    <p>Enter your credentials to obtain an access token.</p>
+                                </div>
+
+                                <form id="form-login" autocomplete="off">
+                                    <div class="input-group">
+                                        <label for="login-username">Username</label>
+                                        <div class="input-field-wrapper">
+                                            <i data-lucide="user" class="field-icon"></i>
+                                            <input type="text" id="login-username" required placeholder="Enter username (e.g. admin or user)" autocomplete="username">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="login-password">Password</label>
+                                        <div class="input-field-wrapper">
+                                            <i data-lucide="lock" class="field-icon"></i>
+                                            <input type="password" id="login-password" required placeholder="Enter password" autocomplete="current-password">
+                                            <button type="button" class="btn-toggle-password" data-target="login-password" title="Toggle password visibility">
+                                                <i data-lucide="eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn-primary-action" id="btn-submit-login">
+                                        <i data-lucide="arrow-right-circle"></i>
+                                        <span>Sign In & Authenticate</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- SIGN UP TAB PANE -->
+                            <div class="tab-pane" id="form-signup-pane">
+                                <div class="form-header">
+                                    <h3>Create Identity</h3>
+                                    <p>Register a new account in the database.</p>
+                                </div>
+
+                                <form id="form-signup" autocomplete="off">
+                                    <div class="form-row-2">
+                                        <div class="input-group">
+                                            <label for="signup-id">Numeric ID</label>
+                                            <div class="input-field-wrapper">
+                                                <i data-lucide="hash" class="field-icon"></i>
+                                                <input type="number" id="signup-id" required value="101" min="1" placeholder="e.g. 101">
+                                                <button type="button" class="btn-small-icon" id="btn-gen-id" title="Generate Random ID">
+                                                    <i data-lucide="dice-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-group">
+                                            <label for="signup-role">Role Clearance</label>
+                                            <div class="input-field-wrapper">
+                                                <i data-lucide="shield" class="field-icon"></i>
+                                                <select id="signup-role" required>
+                                                    <option value="user" selected>user (Standard)</option>
+                                                    <option value="admin">admin (Full Root)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="signup-username">Username</label>
+                                        <div class="input-field-wrapper">
+                                            <i data-lucide="user" class="field-icon"></i>
+                                            <input type="text" id="signup-username" required placeholder="Choose a username" autocomplete="username">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="signup-email">Email Address</label>
+                                        <div class="input-field-wrapper">
+                                            <i data-lucide="mail" class="field-icon"></i>
+                                            <input type="email" id="signup-email" required placeholder="name@company.com" autocomplete="email">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label for="signup-password">Password</label>
+                                        <div class="input-field-wrapper">
+                                            <i data-lucide="lock" class="field-icon"></i>
+                                            <input type="password" id="signup-password" required placeholder="Create strong password" autocomplete="new-password">
+                                            <button type="button" class="btn-toggle-password" data-target="signup-password" title="Toggle password visibility">
+                                                <i data-lucide="eye"></i>
+                                            </button>
+                                        </div>
+                                        <!-- Password Strength Indicator -->
+                                        <div class="pwd-strength-container">
+                                            <div class="pwd-meter"><div class="pwd-meter-fill" id="pwd-meter-fill"></div></div>
+                                            <span class="pwd-meter-text" id="pwd-meter-text">Strength: Enter password</span>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn-primary-action success-btn" id="btn-submit-signup">
+                                        <i data-lucide="user-check"></i>
+                                        <span>Create Account</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 2: PROFILE PAGE (/profile)                              -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view" id="view-profile">
+                <div class="view-header">
+                    <div>
+                        <div class="breadcrumb">
+                            <span>AuthNexus</span>
+                            <i data-lucide="chevron-right"></i>
+                            <span class="current">User Profile API</span>
+                        </div>
+                        <h2 class="view-title">Profile Overview</h2>
+                        <p class="view-subtitle">Live endpoint: <code class="inline-code">GET /profile</code> — Authorized for roles: <span class="badge-chip">admin</span> <span class="badge-chip">user</span></p>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-secondary" id="btn-refresh-profile">
+                            <i data-lucide="refresh-cw"></i> Refresh Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unauthenticated Banner / Prompt (shown if not logged in) -->
+                <div class="unauth-banner" id="profile-unauth-card" style="display: none;">
+                    <div class="unauth-icon-box"><i data-lucide="lock"></i></div>
+                    <div class="unauth-text">
+                        <h3>Authentication Required</h3>
+                        <p>You must sign in with a valid user or admin token to view this profile.</p>
+                    </div>
+                    <button class="btn-primary-action" onclick="app.navigateTo('auth')">
+                        <i data-lucide="log-in"></i> Go to Sign In
+                    </button>
+                </div>
+
+                <!-- Profile Content (Shown when authenticated) -->
+                <div class="profile-content-grid" id="profile-data-container">
+                    
+                    <!-- Main Profile Identity Card -->
+                    <div class="content-card profile-card-hero">
+                        <div class="profile-banner-bg"></div>
+                        <div class="profile-hero-body">
+                            <div class="profile-avatar-large" id="profile-avatar-large">
+                                <span id="profile-large-initials">U</span>
+                            </div>
+                            <div class="profile-main-info">
+                                <div class="profile-name-row">
+                                    <h3 id="profile-display-username">Username</h3>
+                                    <span class="role-badge" id="profile-display-role">USER</span>
+                                    <span class="verification-pill"><i data-lucide="shield-check"></i> JWT Verified</span>
+                                </div>
+                                <p class="profile-meta-line" id="profile-display-message">Profile information retrieved successfully</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Metric Cards -->
+                    <div class="metric-cards-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-box icon-indigo"><i data-lucide="user"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Identity Subject (sub)</span>
+                                <h4 class="stat-value" id="stat-profile-user">--</h4>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-box icon-purple"><i data-lucide="shield"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Role Clearance</span>
+                                <h4 class="stat-value" id="stat-profile-role">--</h4>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-box icon-cyan"><i data-lucide="cpu"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Cryptographic Algorithm</span>
+                                <h4 class="stat-value">HS256 (HMAC)</h4>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-box icon-emerald"><i data-lucide="clock"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Token Freshness</span>
+                                <h4 class="stat-value" id="stat-profile-freshness">Valid</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Permissions & Access Matrix Card -->
+                    <div class="content-card">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <i data-lucide="shield-check" class="text-indigo"></i>
+                                <h3>Role Clearance & Endpoint Access Matrix</h3>
+                            </div>
+                            <span class="tag-badge">Zero-Trust Evaluator</span>
+                        </div>
+
+                        <div class="matrix-grid">
+                            <div class="matrix-item" id="matrix-profile">
+                                <div class="matrix-left">
+                                    <span class="http-badge get">GET</span>
+                                    <div>
+                                        <div class="matrix-path">/profile</div>
+                                        <div class="matrix-roles">Allowed: admin, user</div>
+                                    </div>
+                                </div>
+                                <div class="matrix-status"><span class="badge-allowed"><i data-lucide="check"></i> Authorized</span></div>
+                            </div>
+
+                            <div class="matrix-item" id="matrix-protected">
+                                <div class="matrix-left">
+                                    <span class="http-badge get">GET</span>
+                                    <div>
+                                        <div class="matrix-path">/protected</div>
+                                        <div class="matrix-roles">Allowed: any valid token</div>
+                                    </div>
+                                </div>
+                                <div class="matrix-status"><span class="badge-allowed"><i data-lucide="check"></i> Authorized</span></div>
+                            </div>
+
+                            <div class="matrix-item" id="matrix-user">
+                                <div class="matrix-left">
+                                    <span class="http-badge get">GET</span>
+                                    <div>
+                                        <div class="matrix-path">/user</div>
+                                        <div class="matrix-roles">Allowed: user ONLY</div>
+                                    </div>
+                                </div>
+                                <div class="matrix-status" id="matrix-status-user"><span class="badge-allowed"><i data-lucide="check"></i> Authorized</span></div>
+                            </div>
+
+                            <div class="matrix-item" id="matrix-admin">
+                                <div class="matrix-left">
+                                    <span class="http-badge get">GET</span>
+                                    <div>
+                                        <div class="matrix-path">/admin</div>
+                                        <div class="matrix-roles">Allowed: admin ONLY</div>
+                                    </div>
+                                </div>
+                                <div class="matrix-status" id="matrix-status-admin"><span class="badge-restricted"><i data-lucide="x"></i> Restricted</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Raw API Response Inspector Box -->
+                    <div class="content-card">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <i data-lucide="code-2" class="text-cyan"></i>
+                                <h3>Live API Response Inspector</h3>
+                            </div>
+                            <div class="api-meta-tags">
+                                <span class="status-code-pill status-200" id="profile-resp-status">HTTP 200 OK</span>
+                                <span class="latency-pill" id="profile-resp-latency">-- ms</span>
+                            </div>
+                        </div>
+                        <div class="code-viewer-container">
+                            <pre class="json-code-block" id="profile-json-display">// Live response from GET /profile will appear here...</pre>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 3: USER DASHBOARD (/user)                               -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view" id="view-user">
+                <div class="view-header">
+                    <div>
+                        <div class="breadcrumb">
+                            <span>AuthNexus</span>
+                            <i data-lucide="chevron-right"></i>
+                            <span class="current">User Portal</span>
+                        </div>
+                        <h2 class="view-title">User Dashboard</h2>
+                        <p class="view-subtitle">Live endpoint: <code class="inline-code">GET /user</code> — Guarded by <code class="inline-code">require_role(["user"])</code></p>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-secondary" id="btn-refresh-user">
+                            <i data-lucide="refresh-cw"></i> Query /user
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Response / Portal State Container -->
+                <div id="user-portal-container">
+                    <!-- Dynamic state rendered by JavaScript: Authorized User Card OR 403 Forbidden Notice OR 401 Unauthenticated -->
+                </div>
+            </section>
+
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 4: ADMIN DASHBOARD (/admin)                             -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view" id="view-admin">
+                <div class="view-header">
+                    <div>
+                        <div class="breadcrumb">
+                            <span>AuthNexus</span>
+                            <i data-lucide="chevron-right"></i>
+                            <span class="current">Admin Portal</span>
+                        </div>
+                        <h2 class="view-title">Admin Control Center</h2>
+                        <p class="view-subtitle">Live endpoint: <code class="inline-code">GET /admin</code> — Guarded by <code class="inline-code">require_role(["admin"])</code></p>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-secondary" id="btn-refresh-admin">
+                            <i data-lucide="refresh-cw"></i> Query /admin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Portal State Container -->
+                <div id="admin-portal-container">
+                    <!-- Dynamic state rendered by JavaScript: Authorized Admin Card OR 403 Forbidden Notice OR 401 Unauthenticated -->
+                </div>
+            </section>
+
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 5: PROTECTED API (/protected)                           -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view" id="view-protected">
+                <div class="view-header">
+                    <div>
+                        <div class="breadcrumb">
+                            <span>AuthNexus</span>
+                            <i data-lucide="chevron-right"></i>
+                            <span class="current">Protected Gateway</span>
+                        </div>
+                        <h2 class="view-title">Protected API Route</h2>
+                        <p class="view-subtitle">Live endpoint: <code class="inline-code">GET /protected</code> — Guarded by FastAPI <code class="inline-code">Depends(get_current_user)</code></p>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-secondary" id="btn-refresh-protected">
+                            <i data-lucide="send"></i> Probe Route
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Protected Content Container -->
+                <div id="protected-portal-container">
+                    <!-- Dynamic content rendered by JS -->
+                </div>
+            </section>
+
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- VIEW 6: TOKEN & API INSPECTOR (LIVE TESTBENCH & JWT DECODER)  -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="page-view" id="view-inspector">
+                <div class="view-header">
+                    <div>
+                        <div class="breadcrumb">
+                            <span>AuthNexus</span>
+                            <i data-lucide="chevron-right"></i>
+                            <span class="current">Diagnostic Suite</span>
+                        </div>
+                        <h2 class="view-title">Token & API Inspector</h2>
+                        <p class="view-subtitle">Deconstruct cryptographic tokens, probe all 4 endpoints concurrently, and test zero-trust security.</p>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-primary-action" id="btn-probe-all-endpoints">
+                            <i data-lucide="play-circle"></i> Probe All 4 Endpoints
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Endpoints Testbench Grid -->
+                <div class="content-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-icon">
+                            <i data-lucide="server" class="text-indigo"></i>
+                            <h3>All RBAC Endpoints Testbench</h3>
+                        </div>
+                        <span class="tag-badge">Live HTTP Status Probes</span>
+                    </div>
+
+                    <div class="endpoints-table">
+                        <div class="endpoint-test-row" id="bench-row-protected">
+                            <div class="col-route">
+                                <span class="http-badge get">GET</span>
+                                <strong class="route-name">/protected</strong>
+                            </div>
+                            <div class="col-desc">Protected greeting route requiring any valid Bearer token</div>
+                            <div class="col-req"><span class="badge-chip">user</span> <span class="badge-chip">admin</span></div>
+                            <div class="col-status"><span class="status-pill pill-idle" id="bench-status-protected">IDLE</span></div>
+                            <div class="col-btn">
+                                <button class="btn-small-probe" data-target-probe="/protected"><i data-lucide="send"></i> Test</button>
+                            </div>
+                        </div>
+
+                        <div class="endpoint-test-row" id="bench-row-profile">
+                            <div class="col-route">
+                                <span class="http-badge get">GET</span>
+                                <strong class="route-name">/profile</strong>
+                            </div>
+                            <div class="col-desc">Profile retrieval route checking role in ['admin', 'user']</div>
+                            <div class="col-req"><span class="badge-chip">user</span> <span class="badge-chip">admin</span></div>
+                            <div class="col-status"><span class="status-pill pill-idle" id="bench-status-profile">IDLE</span></div>
+                            <div class="col-btn">
+                                <button class="btn-small-probe" data-target-probe="/profile"><i data-lucide="send"></i> Test</button>
+                            </div>
+                        </div>
+
+                        <div class="endpoint-test-row" id="bench-row-user">
+                            <div class="col-route">
+                                <span class="http-badge get">GET</span>
+                                <strong class="route-name">/user</strong>
+                            </div>
+                            <div class="col-desc">User Dashboard route strictly restricted to 'user' role</div>
+                            <div class="col-req"><span class="badge-chip">user</span></div>
+                            <div class="col-status"><span class="status-pill pill-idle" id="bench-status-user">IDLE</span></div>
+                            <div class="col-btn">
+                                <button class="btn-small-probe" data-target-probe="/user"><i data-lucide="send"></i> Test</button>
+                            </div>
+                        </div>
+
+                        <div class="endpoint-test-row" id="bench-row-admin">
+                            <div class="col-route">
+                                <span class="http-badge get">GET</span>
+                                <strong class="route-name">/admin</strong>
+                            </div>
+                            <div class="col-desc">Admin Dashboard route strictly restricted to 'admin' role</div>
+                            <div class="col-req"><span class="badge-chip">admin</span></div>
+                            <div class="col-status"><span class="status-pill pill-idle" id="bench-status-admin">IDLE</span></div>
+                            <div class="col-btn">
+                                <button class="btn-small-probe" data-target-probe="/admin"><i data-lucide="send"></i> Test</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JWT Cryptographic Deconstruction Card -->
+                <div class="content-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-icon">
+                            <i data-lucide="binary" class="text-purple"></i>
+                            <h3>Cryptographic JWT Token Deconstruction</h3>
+                        </div>
+                        <div class="card-actions-right">
+                            <button class="btn-secondary-sm" id="btn-copy-raw-jwt">
+                                <i data-lucide="copy"></i> Copy Token
+                            </button>
+                            <button class="btn-secondary-sm danger" id="btn-tamper-jwt">
+                                <i data-lucide="alert-triangle"></i> Simulate Token Tamper
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Color Coded JWT String Box -->
+                    <div class="jwt-string-container">
+                        <span class="jwt-segment jwt-header-color" id="jwt-seg-header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="jwt-dot">.</span><span class="jwt-segment jwt-payload-color" id="jwt-seg-payload">eyJzdWIiOiJHVUVTVCIsInJvbGUiOiJub25lIiwiZXhwIjowfQ</span><span class="jwt-dot">.</span><span class="jwt-segment jwt-sig-color" id="jwt-seg-signature">SIGNATURE_PLACEHOLDER</span>
+                    </div>
+
+                    <!-- Decoded Header & Decoded Payload Cards -->
+                    <div class="decoded-cards-grid">
+                        <div class="decoded-box header-box">
+                            <div class="decoded-header-title">
+                                <i data-lucide="file-code"></i> Decoded Header (Algorithm & Type)
+                            </div>
+                            <pre class="json-code-block" id="decoded-header-text">{
+  "alg": "HS256",
+  "typ": "JWT"
+}</pre>
+                        </div>
+
+                        <div class="decoded-box payload-box">
+                            <div class="decoded-payload-title">
+                                <i data-lucide="database"></i> Decoded Payload (Claims & Subject)
+                            </div>
+                            <pre class="json-code-block" id="decoded-payload-text">{
+  "sub": "No active session",
+  "role": "none",
+  "exp": null
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Inspector Log Viewer -->
+                <div class="content-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-icon">
+                            <i data-lucide="terminal" class="text-emerald"></i>
+                            <h3>Diagnostic Terminal Output</h3>
+                        </div>
+                        <div class="api-meta-tags">
+                            <span class="status-code-pill status-idle" id="inspector-status-code">HTTP --</span>
+                            <span class="latency-pill" id="inspector-latency">0 ms</span>
+                        </div>
+                    </div>
+                    <div class="code-viewer-container">
+                        <pre class="json-code-block" id="inspector-terminal-text">// Select any probe or run sweep to inspect detailed headers and response payloads...</pre>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ================================================================= -->
+        <!-- SERVER SETTINGS MODAL                                             -->
+        <!-- ================================================================= -->
+        <div class="modal-backdrop" id="modal-settings" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="title-with-icon">
+                        <i data-lucide="settings" class="text-indigo"></i>
+                        <h3>API Gateway Settings</h3>
+                    </div>
+                    <button class="btn-close-modal" id="btn-close-settings">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="input-api-url">Backend Server Base URL</label>
+                        <div class="input-field-wrapper">
+                            <i data-lucide="server" class="field-icon"></i>
+                            <input type="text" id="input-api-url" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000">
+                        </div>
+                        <p class="field-hint">FastAPI server running with <code class="inline-code">uvicorn main:app --reload</code></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="btn-cancel-settings">Cancel</button>
+                    <button class="btn-primary-action" id="btn-save-settings">Save & Reconnect</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <span>AuthNexus v2.0 &bull; Smart JWT & RBAC Management Portal</span>
+            </div>
+            <div class="footer-right">
+                <span class="status-dot dot-online"></span>
+                <span>FastAPI + PyJWT HS256 + SQLAlchemy</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
